@@ -17,7 +17,7 @@
 }
 ```
 
-**GET** `http://127.0.0.1:8080/list?fromid=10&toid=44
+**GET** `http://127.0.0.1:8080/list?fromid=10&toid=44`
 
 **Success response:**
 
@@ -28,7 +28,7 @@
 }
 ```
 
-**GET** `http://127.0.0.1:8080/list?fromid=1&toid=1
+**GET** `http://127.0.0.1:8080/list?fromid=1&toid=1`
 
 **Success response:**
 
@@ -46,6 +46,7 @@
 "success": false,
 "error": "Bad GET request"
 }
+```
 
 ```json
 {
