@@ -1,9 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using ClassLibraryAPI;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Text.Json;
 
 namespace ServerCore
 {
@@ -11,8 +13,6 @@ namespace ServerCore
     {
         static void Main(string[] args)
         {
-//        start:
-
             string ip = "127.0.0.1";
             int port = 8080;
 
@@ -34,10 +34,37 @@ namespace ServerCore
                     HttpListenerResponse response = context.Response;
 
                     string ResponseString = "";
+                    string urlPath = context.Request.Url.AbsolutePath;
+                    string JSONString = "";
+
                     if (request.HttpMethod == "GET")
                     {
-                        ResponseString = "GET request received";
-                        ServerLog.Request(request.Headers.ToString());
+                        if (urlPath == "/list")
+                        {
+                            var listParams = context.Request.QueryString;
+                            if (listParams != null)
+                            {
+                                string fromid = listParams["fromid"] ?? ""; 
+                                string toid = listParams["toid"] ?? "";
+                                if (fromid != "" && toid != "") {
+                                    ServerLog.RequestGETlist(fromid, toid);
+                                    ResponseString = JSONUtils.GETResponseJSON(fromid, toid);
+                                }
+                                else
+                                {
+                                    ResponseString = JSONUtils.BadRequestJSON(1);
+                                }
+                            }
+                            else
+                            {
+                                ResponseString = JSONUtils.BadRequestJSON(1);
+                            }
+                        }
+                        else
+                        {
+                            ResponseString = JSONUtils.BadRequestJSON(2);
+                        }
+                        ServerLog.RequestGET(request.Headers.ToString());
                         ServerLog.Response(ResponseString);
                     }
                     else if (request.HttpMethod == "POST")
@@ -48,18 +75,18 @@ namespace ServerCore
                             data = Encoding.UTF8.GetBytes(reader.ReadToEnd());
                         }
                         ResponseString = Encoding.UTF8.GetString(data);
-                        ServerLog.Request(request.Headers.ToString());
+                        ServerLog.RequestPOST(request.Headers.ToString());
                         ServerLog.Response(ResponseString);
                     }
                     else
                     {
-                        ResponseString = "Unsupported method: " + request.HttpMethod;
-                        ServerLog.Request(request.Headers.ToString());
+                        ResponseString = JSONUtils.BadRequestJSON(3) + request.HttpMethod;
+                        ServerLog.UnknownRequest(request.Headers.ToString());
                         ServerLog.Error(ResponseString);
                     }
 
+                    response.ContentType = "application/json";
                     byte[] buffer = Encoding.UTF8.GetBytes(ResponseString);
-                    response.ContentType = "text/html";
                     response.ContentLength64 = buffer.Length;
                     response.OutputStream.Write(buffer, 0, buffer.Length);
                     response.Close();
@@ -69,6 +96,7 @@ namespace ServerCore
             ServerLog.Break();
 
             listener.Stop();
+
             ServerLog.Stopped();
         }
     }

@@ -67,6 +67,7 @@ namespace ClassLibraryAPI
         {
             WriteLineWithColor(value, ConsoleColor.Green, arg);
         }
+
         public static void Success(object value)
         {
             WriteLineWithColor(value, ConsoleColor.Green, null);
